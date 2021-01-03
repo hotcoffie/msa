@@ -1,7 +1,7 @@
 # 系统状态
 # prod - 正式抢点
 # dev - 试访问网站检查参数是否正确
-active: prod
+active: dev
 
 # 账号密码
 #username: 9132058567098589XA
