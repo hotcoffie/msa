@@ -1,0 +1,34 @@
+shipType: 1
+speed: 14
+maximumDraught: 11.15
+totalPeople1: 22
+eta: 2020-12-26 16:40:00
+startPort: 连云港
+beyondBreadth: 0
+beyondBreadthRight: 0
+endPort: 太仓
+berthingPosition: 武港
+goodsType: 矿石
+goodsName: 铁矿
+totalCargoWeight: 86826
+remark: 承诺不搭载非本船船员以外人员；未经海事部门同意不得上下人员、锚地不上下人员；未经海事部门同意不得他船并靠和作业
+startPosition:
+endPosition:
+maximumDraught1:
+startPort1:
+endPort1:
+leavePosition1:
+berthingPosition1:
+goodsType1:
+totalCargoWeight1:
+remark1:
+maximumDraught2:
+startPort2:
+endPort2:
+leavePosition2:
+berthingPosition2:
+attachmentPath:
+remark2:
+saveCode:
+vtsStatus: 0
+savePostion: {"id":"MjMyMTcz","type":"MQ==","shipId":"NDcwODc=","declareShipType":"超规范船","passTime":"MjAyMS0wMS0wNCAxMTozNTowMA==","speed":"14","maximumDraught":"11.15","beyondBreadth":"0","beyondBreadthRight":"0","endPort":"长江-太仓","startPort":"江苏省-连云港","goodsType":"矿石-铁矿","berthingPosition":"武港","leavePosition":"","totalCargoWeight":"86826","nightCheck1":"","nightCheck2":"","nightCheck3":"","nightCheck4":"","nightCheck5":"","nightCheckResult":"","expectArriveTime":"2020-12-26 16:40:00","remark":"承诺不搭载非本船船员以外人员；未经海事部门同意不得上下人员、锚地不上下人员；未经海事部门同意不得他船并靠和作业"}
