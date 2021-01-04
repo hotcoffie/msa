@@ -1,31 +1,17 @@
 package vscode
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/levigross/grequests"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
-	"msa/common/util"
 	"net/http"
-	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"time"
 )
-
-const dir = "images"
-
-func init() {
-	exists, err := util.PathExists(dir)
-	if err != nil {
-		logrus.Panic("")
-	}
-	if !exists {
-		_ = os.Mkdir(dir, os.ModePerm)
-	}
-}
 
 func Get(JSESSIONID string) string {
 	url := `https://www.sh.msa.gov.cn/zwzx/views/image.jsp?ts=` + strconv.Itoa(time.Now().Second()*1000)
@@ -64,35 +50,20 @@ func getImg(url, JSESSIONID string, opts *grequests.RequestOptions) (string, err
 	if res.StatusCode != 200 {
 		return "", errors.New(fmt.Sprintf("状态码：%d", res.StatusCode))
 	}
-	imgFile := dir + string(os.PathSeparator) + JSESSIONID + ".jfif"
-	txtFile := dir + string(os.PathSeparator) + JSESSIONID
-	err = ioutil.WriteFile(imgFile, res.Bytes(), os.ModePerm)
-	if err != nil {
-		return "", errors.WithMessage(err, "保存图片")
-	}
-	cmd := exec.Command("tesseract", imgFile, txtFile, "--dpi", "96", "--psm", "10", "--oem", "3", "-c", "tessedit_char_whitelist=0123456789")
+	cmd := exec.Command("tesseract", "stdin", "stdout", "--dpi", "96", "--psm", "10", "--oem", "3", "-c", "tessedit_char_whitelist=0123456789")
+	var result = new(bytes.Buffer)
+	cmd.Stdout = result
+	cmd.Stdin = res.RawResponse.Body
 	err = cmd.Run()
 	if err != nil {
-		return "", errors.WithMessage(err, "解析图片")
+		return "", errors.WithMessage(err, "执行tesseract")
 	}
-	err = os.Remove(imgFile)
-	if err != nil {
-		return "", errors.WithMessage(err, "删除图片")
-	}
-	txtFile += ".txt"
-	result, err := ioutil.ReadFile(txtFile)
-	if err != nil {
-		return "", errors.WithMessage(err, "读取验证码")
-	}
-	err = os.Remove(txtFile)
-	if err != nil {
-		return "", errors.WithMessage(err, "删除验证码文档")
-	}
+
 	reg, err := regexp.Compile("[^0-9]+")
 	if err != nil {
 		return "", errors.WithMessage(err, "正则处理验证码")
 	}
-	resultStr := string(result)
+	resultStr := result.String()
 	code := reg.ReplaceAllString(resultStr, "")
 	if len(code) != 4 {
 		return "", errors.New("识别结果：" + code)

@@ -2,18 +2,9 @@ package util
 
 import (
 	"math/rand"
-	"os"
 	"reflect"
 	"time"
 )
-
-func PathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return true, err
-}
 
 func RandSlice(slice interface{}) { // 切片乱序
 	rv := reflect.ValueOf(slice)
