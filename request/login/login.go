@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"msa/common/conf"
 	"msa/common/util"
-	"msa/request"
+	"msa/request/vo"
 	"msa/request/vscode"
 	"net/http"
 	"time"
@@ -23,25 +23,24 @@ func Dail() string {
 
 func getPublicKey() (string, string) {
 	url := "https://www.sh.msa.gov.cn/zwzx/loginOut"
-	headers := map[string]string{
-		"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-		"Accept-Encoding":           "gzip, deflate, br",
-		"Accept-Language":           "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-		"Cache-Control":             "max-age=0",
-		"Connection":                "keep-alive",
-		"Host":                      "www.sh.msa.gov.cn",
-		"Origin":                    "https://www.sh.msa.gov.cn",
-		"Referer":                   "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1",
-		"Sec-Fetch-Dest":            "document",
-		"Sec-Fetch-Mode":            "navigate",
-		"Sec-Fetch-Site":            "same-origin",
-		"Sec-Fetch-User":            "?1",
-		"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
-		"Upgrade-Insecure-Requests": "1",
-	}
 	opts := &grequests.RequestOptions{
-		RequestTimeout: 10 * time.Second,
-		Headers:        headers,
+		RequestTimeout: 30 * time.Second,
+		Headers: map[string]string{
+			"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+			"Accept-Encoding":           "gzip, deflate, br",
+			"Accept-Language":           "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+			"Cache-Control":             "max-age=0",
+			"Connection":                "keep-alive",
+			"Host":                      "www.sh.msa.gov.cn",
+			"Origin":                    "https://www.sh.msa.gov.cn",
+			"Referer":                   "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1",
+			"Sec-Fetch-Dest":            "document",
+			"Sec-Fetch-Mode":            "navigate",
+			"Sec-Fetch-Site":            "same-origin",
+			"Sec-Fetch-User":            "?1",
+			"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+			"Upgrade-Insecure-Requests": "1",
+		},
 	}
 	for {
 		if publicKey, JSESSIONID, err := parsePublicKey(url, opts); err != nil {
@@ -81,25 +80,24 @@ func parsePublicKey(url string, opts *grequests.RequestOptions) (string, string,
 
 func loginCheck(publicKey, JSESSIONID string) {
 	url := "https://www.sh.msa.gov.cn/zwzx/loginCheck"
-	headers := map[string]string{
-		"Accept":           "*/*",
-		"Accept-Encoding":  "gzip, deflate, br",
-		"Accept-Language":  "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7",
-		"Connection":       "keep-alive",
-		"Content-Type":     "application/x-www-form-urlencoded; charset=UTF-8",
-		"Origin":           "https://www.sh.msa.gov.cn",
-		"Referer":          "https://www.sh.msa.gov.cn/zwzx/loginOut",
-		"Sec-Fetch-Dest":   "empty",
-		"Sec-Fetch-Mode":   "cors",
-		"Sec-Fetch-Site":   "same-origin",
-		"Host":             "www.sh.msa.gov.cn",
-		"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
-		"X-Requested-With": "XMLHttpRequest",
-	}
 	opts := &grequests.RequestOptions{
-		RequestTimeout: 10 * time.Second,
-		Headers:        headers,
-		Cookies:        []*http.Cookie{{Name: "isRead", Value: "y"}, {Name: "JSESSIONID", Value: JSESSIONID}},
+		RequestTimeout: 30 * time.Second,
+		Headers: map[string]string{
+			"Accept":           "*/*",
+			"Accept-Encoding":  "gzip, deflate, br",
+			"Accept-Language":  "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7",
+			"Connection":       "keep-alive",
+			"Content-Type":     "application/x-www-form-urlencoded; charset=UTF-8",
+			"Origin":           "https://www.sh.msa.gov.cn",
+			"Referer":          "https://www.sh.msa.gov.cn/zwzx/loginOut",
+			"Sec-Fetch-Dest":   "empty",
+			"Sec-Fetch-Mode":   "cors",
+			"Sec-Fetch-Site":   "same-origin",
+			"Host":             "www.sh.msa.gov.cn",
+			"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+			"X-Requested-With": "XMLHttpRequest",
+		},
+		Cookies: []*http.Cookie{{Name: "isRead", Value: "y"}, {Name: "JSESSIONID", Value: JSESSIONID}},
 	}
 	logincode := vscode.Get(JSESSIONID)
 	for {
@@ -117,7 +115,7 @@ func loginCheck(publicKey, JSESSIONID string) {
 	}
 }
 
-func tryLogin(url string, opts *grequests.RequestOptions, publicKey, logincode string) (*request.Result, error) {
+func tryLogin(url string, opts *grequests.RequestOptions, publicKey, logincode string) (*vo.Result, error) {
 	params, err := loginParams(publicKey, logincode)
 	if err != nil {
 		return nil, errors.WithMessage(err, "加密参数")
@@ -131,7 +129,7 @@ func tryLogin(url string, opts *grequests.RequestOptions, publicKey, logincode s
 	if res.StatusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("状态码：%d", res.StatusCode))
 	}
-	result := &request.Result{}
+	result := &vo.Result{}
 	err = res.JSON(result)
 	return result, err
 }

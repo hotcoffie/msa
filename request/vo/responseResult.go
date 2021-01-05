@@ -1,4 +1,4 @@
-package request
+package vo
 
 type Result struct {
 	Data            interface{}

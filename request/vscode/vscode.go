@@ -15,24 +15,23 @@ import (
 
 func Get(JSESSIONID string) string {
 	url := `https://www.sh.msa.gov.cn/zwzx/views/image.jsp?ts=` + strconv.Itoa(time.Now().Second()*1000)
-	headers := map[string]string{
-		"Accept":          "image/webp,image/apng,image/*,*/*;q=0.8",
-		"Accept-Encoding": "gzip, deflate, br",
-		"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-		"Connection":      "keep-alive",
-		"Host":            "www.sh.msa.gov.cn",
-		"Sec-Fetch-Dest":  "image",
-		"Sec-Fetch-Mode":  "no-cors",
-		"Sec-Fetch-Site":  "same-origin",
-		"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
-	}
 	opts := &grequests.RequestOptions{
-		RequestTimeout: 5 * time.Second,
-		Headers:        headers,
-		Cookies:        []*http.Cookie{{Name: "isRead", Value: "y"}, {Name: "JSESSIONID", Value: JSESSIONID}},
+		RequestTimeout: 30 * time.Second,
+		Headers: map[string]string{
+			"Accept":          "image/webp,image/apng,image/*,*/*;q=0.8",
+			"Accept-Encoding": "gzip, deflate, br",
+			"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+			"Connection":      "keep-alive",
+			"Host":            "www.sh.msa.gov.cn",
+			"Sec-Fetch-Dest":  "image",
+			"Sec-Fetch-Mode":  "no-cors",
+			"Sec-Fetch-Site":  "same-origin",
+			"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+		},
+		Cookies: []*http.Cookie{{Name: "isRead", Value: "y"}, {Name: "JSESSIONID", Value: JSESSIONID}},
 	}
 	for {
-		code, err := getImg(url, JSESSIONID, opts)
+		code, err := getImg(url, opts)
 		if err != nil {
 			logrus.WithError(err).Debug("验证码")
 			continue
@@ -41,7 +40,7 @@ func Get(JSESSIONID string) string {
 	}
 }
 
-func getImg(url, JSESSIONID string, opts *grequests.RequestOptions) (string, error) {
+func getImg(url string, opts *grequests.RequestOptions) (string, error) {
 	res, err := grequests.Get(url, opts)
 	if err != nil {
 		return "", errors.WithMessage(err, "获取图片")

@@ -9,7 +9,6 @@ import (
 const TimestampFormat = "2006-01-02 15:04:05.999"
 
 func init() {
-	// Log as JSON instead of the default ASCII formatter.
 	if conf.Data.Active == conf.ActiveDev {
 		log.SetFormatter(&log.TextFormatter{
 			TimestampFormat: TimestampFormat,

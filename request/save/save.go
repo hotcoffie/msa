@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"msa/common/conf"
-	"msa/request"
+	"msa/request/vo"
 	"msa/request/vscode"
 	"net/http"
 	"strconv"
@@ -22,13 +22,23 @@ var finishedMsgs = map[string]bool{
 }
 
 func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
+	url := "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/saveVts/"
+	if conf.Data.Active == conf.ActiveProd {
+		url = "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/save/"
+	}
+	opts, err := generateSaveOpts(passTime, JSESSIONID)
+	if err != nil {
+		log.WithError(err).Error("组装请求参数失败")
+		return
+	}
 	finished := false
 	start := false
 	for !finished {
 		if start || conf.Data.Active == conf.ActiveDev {
-			result, err := save(passTime, JSESSIONID)
+			result, err := save(url, opts)
 			if err != nil {
 				log.WithError(err).Error("提交失败")
+				finished = conf.Data.Active == conf.ActiveDev
 				continue
 			}
 			log.WithField("result", result.ResultDesc).Info("提交成功")
@@ -53,15 +63,10 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 		}
 	}
 }
-
-func save(passTime, JSESSIONID string) (*request.Result, error) {
-	url := "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/saveVts/"
-	if conf.Data.Active == conf.ActiveProd {
-		url = "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/save/"
-	}
+func generateSaveOpts(passTime, JSESSIONID string) (*grequests.RequestOptions, error) {
 	contentType, requestBody, err := conf.CreateRequestBody(passTime, vscode.Get(JSESSIONID))
 	if err != nil {
-		return nil, errors.WithMessage(err, "获取请求参数")
+		return nil, err
 	}
 	headers := map[string]string{
 		"Accept":           "application/json, text/javascript, */*; q=0.01",
@@ -85,6 +90,9 @@ func save(passTime, JSESSIONID string) (*request.Result, error) {
 		Cookies:        []*http.Cookie{{Name: "isRead", Value: "y"}, {Name: "JSESSIONID", Value: JSESSIONID}},
 		RequestBody:    requestBody,
 	}
+	return opts, nil
+}
+func save(url string, opts *grequests.RequestOptions) (*vo.Result, error) {
 	res, err := grequests.Post(url, opts)
 	if err != nil {
 		return nil, errors.WithMessage(err, "请求")
@@ -93,7 +101,7 @@ func save(passTime, JSESSIONID string) (*request.Result, error) {
 	if res.StatusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("状态码：%d", res.StatusCode))
 	}
-	result := &request.Result{}
+	result := &vo.Result{}
 	err = res.JSON(result)
 	if err != nil {
 		return nil, errors.WithMessage(err, "解码")
@@ -103,25 +111,24 @@ func save(passTime, JSESSIONID string) (*request.Result, error) {
 
 func getTime(JSESSIONID string) (int, error) {
 	url := "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/getSeconds"
-	headers := map[string]string{
-		"Accept":           "*/*",
-		"Accept-Encoding":  "gzip, deflate, br",
-		"Accept-Language":  "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-		"Connection":       "keep-alive",
-		"Content-Length":   "0",
-		"Host":             "www.sh.msa.gov.cn",
-		"Origin":           "https://www.sh.msa.gov.cn",
-		"Referer":          "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1",
-		"Sec-Fetch-Dest":   "empty",
-		"Sec-Fetch-Mode":   "cors",
-		"Sec-Fetch-Site":   "same-origin",
-		"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
-		"X-Requested-With": "XMLHttpRequest",
-	}
 	opts := &grequests.RequestOptions{
 		RequestTimeout: 5 * time.Second,
-		Headers:        headers,
-		Cookies:        []*http.Cookie{{Name: "isRead", Value: "y"}, {Name: "JSESSIONID", Value: JSESSIONID}},
+		Headers: map[string]string{
+			"Accept":           "*/*",
+			"Accept-Encoding":  "gzip, deflate, br",
+			"Accept-Language":  "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+			"Connection":       "keep-alive",
+			"Content-Length":   "0",
+			"Host":             "www.sh.msa.gov.cn",
+			"Origin":           "https://www.sh.msa.gov.cn",
+			"Referer":          "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1",
+			"Sec-Fetch-Dest":   "empty",
+			"Sec-Fetch-Mode":   "cors",
+			"Sec-Fetch-Site":   "same-origin",
+			"User-Agent":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+			"X-Requested-With": "XMLHttpRequest",
+		},
+		Cookies: []*http.Cookie{{Name: "isRead", Value: "y"}, {Name: "JSESSIONID", Value: JSESSIONID}},
 	}
 	res, err := grequests.Get(url, opts)
 	if err != nil {

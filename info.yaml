@@ -1,16 +1,16 @@
 shipType: 1
-speed: 14
-maximumDraught: 11.15
-totalPeople1: 22
-eta: 2020-12-26 16:40:00
-startPort: 连云港
+speed: 13
+maximumDraught: 11.8
+totalPeople1: 16
+eta: 2021-01-04 14:00:00
+startPort: 澳大利亚丹皮尔
 beyondBreadth: 0
 beyondBreadthRight: 0
-endPort: 太仓
-berthingPosition: 武港
+endPort: 公海
+berthingPosition: 张家港盛泰码头
 goodsType: 矿石
 goodsName: 铁矿
-totalCargoWeight: 86826
+totalCargoWeight: 102938
 remark: 承诺不搭载非本船船员以外人员；未经海事部门同意不得上下人员、锚地不上下人员；未经海事部门同意不得他船并靠和作业
 startPosition:
 endPosition:
@@ -31,4 +31,4 @@ attachmentPath:
 remark2:
 saveCode:
 vtsStatus: 0
-savePostion: {"id":"MjMyMTcz","type":"MQ==","shipId":"NDcwODc=","declareShipType":"超规范船","passTime":"MjAyMS0wMS0wNCAxMTozNTowMA==","speed":"14","maximumDraught":"11.15","beyondBreadth":"0","beyondBreadthRight":"0","endPort":"长江-太仓","startPort":"江苏省-连云港","goodsType":"矿石-铁矿","berthingPosition":"武港","leavePosition":"","totalCargoWeight":"86826","nightCheck1":"","nightCheck2":"","nightCheck3":"","nightCheck4":"","nightCheck5":"","nightCheckResult":"","expectArriveTime":"2020-12-26 16:40:00","remark":"承诺不搭载非本船船员以外人员；未经海事部门同意不得上下人员、锚地不上下人员；未经海事部门同意不得他船并靠和作业"}
+savePostion: {"id":"MjMyODI0","type":"MQ==","shipId":"NDcxMzk=","declareShipType":"超规范船","passTime":"MjAyMS0wMS0wNiAxMzoxNTowMA==","speed":"13","maximumDraught":"11.8","beyondBreadth":"0","beyondBreadthRight":"0","endPort":"长江-公海","startPort":"国外-澳大利亚丹皮尔","goodsType":"矿石-铁矿","berthingPosition":"张家港盛泰码头","leavePosition":"","totalCargoWeight":"102938","nightCheck1":"","nightCheck2":"","nightCheck3":"","nightCheck4":"","nightCheck5":"","nightCheckResult":"","expectArriveTime":"2021-01-04 14:00:00","remark":"承诺不搭载非本船船员以外人员；未经海事部门同意不得上下人员、锚地不上下人员；未经海事部门同意不得他船并靠和作业"}
