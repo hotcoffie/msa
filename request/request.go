@@ -9,14 +9,14 @@ import (
 
 func Dail(passTime string, index int, wg *sync.WaitGroup) {
 	log := logrus.WithField("point", passTime).WithField("index", index)
-	defer func() {
+	defer func(log *logrus.Entry) {
 		err := recover()
 		if err != nil {
-			logrus.Errorf("异常终止：%s", err)
+			log.Errorf("异常终止：%s", err)
 		}
 		log.Info("任务结束")
 		wg.Done()
-	}()
+	}(log)
 	JSESSIONID := login.Dail()
 	log.Info("登录成功")
 	save.Dail(passTime, JSESSIONID, log)
