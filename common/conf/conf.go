@@ -39,7 +39,7 @@ func init() {
 	wg.Wait()
 }
 func initConf(wg *sync.WaitGroup) {
-	yamlFile, err := ioutil.ReadFile("conf.yaml")
+	yamlFile, err := ioutil.ReadFile("conf.yml")
 	if err != nil {
 		logrus.WithError(err).Panic("读取配置文件")
 	}
@@ -55,7 +55,7 @@ func initConf(wg *sync.WaitGroup) {
 	wg.Done()
 }
 func initInfo(wg *sync.WaitGroup) {
-	file, err := os.Open("info.yaml")
+	file, err := os.Open("info.yml")
 	if err != nil {
 		logrus.WithError(err).Panic("读取申报信息")
 	}
