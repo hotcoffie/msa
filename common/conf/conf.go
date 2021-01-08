@@ -50,9 +50,6 @@ func initConf(wg *sync.WaitGroup) {
 	}
 	Data.Points = strings.ReplaceAll(Data.Points, ",", " ")
 	Data.Active = strings.ToLower(Data.Active)
-	if Data.Active == ActiveDev {
-		Data.ThreadNum = 1
-	}
 	wg.Done()
 }
 func initInfo(wg *sync.WaitGroup) {

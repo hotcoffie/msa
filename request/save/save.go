@@ -46,7 +46,7 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 			result, err := save(url, opts)
 			if err != nil {
 				log.WithError(err).Error("提交失败")
-				finished = conf.Data.Active == conf.ActiveDev
+				finished = conf.Data.Active == conf.ActiveDev || err.Error() == "404"
 				continue
 			}
 			_, finished = finishedMsgs[result.ResultDesc]
@@ -108,7 +108,7 @@ func save(url string, opts *grequests.RequestOptions) (*vo.Result, error) {
 	}
 	defer res.Close()
 	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("状态码：%d", res.StatusCode))
+		return nil, errors.New(fmt.Sprintf("%d", res.StatusCode))
 	}
 	result := &vo.Result{}
 	err = res.JSON(result)
