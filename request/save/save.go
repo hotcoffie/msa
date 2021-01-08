@@ -15,17 +15,18 @@ import (
 
 var finishedMsgs = map[string]bool{
 	"操作成功": true,
-	"进出口申报同一条船舶一天只能申请一次！": false,
-	"当前船舶已经申报成功,请勿重新提交！":  false,
-	"当前时间点已被申报，是否选择排队？":   false,
-	"当前时间点已被申报,是否选择排队？":   false,
+	"进出口申报同一条船舶一天只能申请一次！":  false,
+	"进出口申报同一条船舶一天内只能申请一次！": false,
+	"当前船舶已经申报成功,请勿重新提交！":   false,
+	"当前时间点已被申报，是否选择排队？":    false,
+	"当前时间点已被申报,是否选择排队？":    false,
 }
 
-func howLong() int {
+func howLong() int64 {
 	now := time.Now()
 	times := fmt.Sprintf("%d-%02d-%02d 14:00", now.Year(), now.Month(), now.Day())
 	limit, _ := time.Parse("2006-01-02 15:04", times)
-	return int(limit.Sub(now).Seconds())
+	return int64(now.Sub(limit).Seconds())
 }
 
 func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
@@ -39,7 +40,7 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 		return
 	}
 	finished := false
-	start := howLong() < 30
+	start := false
 	for !finished {
 		if start || conf.Data.Active == conf.ActiveDev {
 			result, err := save(url, opts)
@@ -48,20 +49,20 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 				finished = conf.Data.Active == conf.ActiveDev
 				continue
 			}
-			log.WithField("result", result.ResultDesc).Info("提交成功")
 			_, finished = finishedMsgs[result.ResultDesc]
+			log.WithField("result", result.ResultDesc).WithField("finished", finished).Info("提交成功")
 		} else {
-			result, err := getTime(JSESSIONID)
+			serverResult, err := getTime(JSESSIONID)
+			localResult := howLong()
 			if err != nil {
 				log.WithError(err).Error("获取申报开始时间失败")
-
-				result = howLong()
+				serverResult = localResult
+			} else if serverResult > localResult {
+				log.Error("使用相对更小的本地时间校准")
+				serverResult = localResult
 			}
-			remainLog := log.WithField("remain", result)
-			if result < 0 {
-				remainLog.Info("抢点结束")
-				break
-			} else if result > 30 {
+			remainLog := log.WithField("remain", serverResult)
+			if serverResult > 30 {
 				remainLog.Debug("休息20秒")
 				time.Sleep(20 * time.Second)
 			} else {
@@ -117,7 +118,7 @@ func save(url string, opts *grequests.RequestOptions) (*vo.Result, error) {
 	return result, nil
 }
 
-func getTime(JSESSIONID string) (int, error) {
+func getTime(JSESSIONID string) (int64, error) {
 	url := "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/getSeconds"
 	opts := &grequests.RequestOptions{
 		RequestTimeout: 5 * time.Second,
@@ -146,7 +147,7 @@ func getTime(JSESSIONID string) (int, error) {
 	if res.StatusCode != 200 {
 		return 0, errors.New(fmt.Sprintf("状态码：%d", res.StatusCode))
 	}
-	num, err := strconv.Atoi(res.String())
+	num, err := strconv.ParseInt(res.String(), 10, 64)
 	if err != nil {
 		return 0, errors.WithMessage(err, "解析时间")
 	}
