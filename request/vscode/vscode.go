@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -50,6 +51,7 @@ func getImg(url string, opts *grequests.RequestOptions) (string, error) {
 		return "", errors.New(fmt.Sprintf("状态码：%d", res.StatusCode))
 	}
 	cmd := exec.Command("tesseract", "stdin", "stdout", "--dpi", "96", "--psm", "10", "--oem", "3", "-c", "tessedit_char_whitelist=0123456789")
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	var result = new(bytes.Buffer)
 	cmd.Stdout = result
 	cmd.Stdin = res.RawResponse.Body

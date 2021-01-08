@@ -19,9 +19,9 @@ func run() {
 	date := time.Now().Add(time.Hour * 24).Format("2006-01-02 ")
 	logrus.Infof("抢点日期：%s", date)
 	logrus.Infof("运行模式：%s", conf.Data.Active)
-	logrus.Infof("当前账号：%s", conf.Data.Username)
-	logrus.Infof("时间列表：%s", conf.Data.Points)
-	points := strings.Split(conf.Data.Points, ",")
+	//logrus.Infof("当前账号：%s", conf.Data.Username)
+	//logrus.Infof("时间列表：%s", conf.Data.Points)
+	points := strings.Split(conf.Data.Points, " ")
 	wn := len(points) * conf.Data.ThreadNum
 	logrus.Infof("线程总数：%d", wn)
 

@@ -29,7 +29,7 @@ type entity struct {
 }
 
 var Data entity
-var info map[string]interface{}
+var info map[string]string
 
 func init() {
 	wg := &sync.WaitGroup{}
@@ -61,7 +61,7 @@ func initInfo(wg *sync.WaitGroup) {
 	}
 	defer file.Close()
 	br := bufio.NewReader(file)
-	info = make(map[string]interface{})
+	info = make(map[string]string)
 	for {
 		line, _, c := br.ReadLine()
 		if c == io.EOF {
@@ -71,16 +71,7 @@ func initInfo(wg *sync.WaitGroup) {
 		index := strings.Index(lineStr, ":")
 		k := strings.TrimSpace(lineStr[:index])
 		v := strings.TrimSpace(lineStr[index+1:])
-		if k != "savePostion" {
-			info[k] = v
-			continue
-		}
-		mapV := map[string]string{}
-		err = json.Unmarshal([]byte(v), &mapV)
-		if err != nil {
-			logrus.WithError(err).Panic("解析申报信息savePostion字段")
-		}
-		info[k] = mapV
+		info[k] = v
 	}
 	wg.Done()
 }
@@ -91,9 +82,10 @@ func CreateRequestBody(passTime, saveCode string) (string, *bytes.Buffer, error)
 	defer w.Close()
 	for k, v := range info {
 		if k == "savePostion" {
-			tmp, ok := v.(map[string]string)
-			if !ok {
-				return "", requestBody, errors.New("savePostion字段类型异常")
+			tmp := make(map[string]interface{})
+			err := json.Unmarshal([]byte(v), &tmp)
+			if err != nil {
+				return "", requestBody, errors.WithMessage(err, "解析savePostion字段")
 			}
 			tmp["passTime"] = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:00", passTime)))
 			m, err := json.Marshal(tmp)
@@ -104,11 +96,7 @@ func CreateRequestBody(passTime, saveCode string) (string, *bytes.Buffer, error)
 		} else if k == "saveCode" {
 			v = saveCode
 		}
-		strV, ok := v.(string)
-		if !ok {
-			return "", requestBody, errors.New(k + "字段类型异常")
-		}
-		if err := w.WriteField(k, strV); err != nil {
+		if err := w.WriteField(k, v); err != nil {
 			return "", requestBody, errors.WithMessage(err, "构建multipart/form-data")
 		}
 	}

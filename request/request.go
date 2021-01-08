@@ -14,7 +14,6 @@ func Dail(passTime string, index int, wg *sync.WaitGroup) {
 		if err != nil {
 			log.Errorf("异常终止：%s", err)
 		}
-		log.Info("任务结束")
 		wg.Done()
 	}(log)
 	JSESSIONID := login.Dail()

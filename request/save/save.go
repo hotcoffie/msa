@@ -21,6 +21,13 @@ var finishedMsgs = map[string]bool{
 	"当前时间点已被申报,是否选择排队？":   false,
 }
 
+func howLong() int {
+	now := time.Now()
+	times := fmt.Sprintf("%d-%02d-%02d 14:00", now.Year(), now.Month(), now.Day())
+	limit, _ := time.Parse("2006-01-02 15:04", times)
+	return int(limit.Sub(now).Seconds())
+}
+
 func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 	url := "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/saveVts/"
 	if conf.Data.Active == conf.ActiveProd {
@@ -32,7 +39,7 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 		return
 	}
 	finished := false
-	start := false
+	start := howLong() < 30
 	for !finished {
 		if start || conf.Data.Active == conf.ActiveDev {
 			result, err := save(url, opts)
@@ -47,7 +54,8 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 			result, err := getTime(JSESSIONID)
 			if err != nil {
 				log.WithError(err).Error("获取申报开始时间失败")
-				continue
+
+				result = howLong()
 			}
 			remainLog := log.WithField("remain", result)
 			if result < 0 {
