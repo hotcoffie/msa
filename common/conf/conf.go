@@ -48,6 +48,7 @@ func initConf(wg *sync.WaitGroup) {
 	if err != nil {
 		logrus.WithError(err).Panic("解析配置文件")
 	}
+	Data.Points = strings.ReplaceAll(Data.Points, ",", " ")
 	Data.Active = strings.ToLower(Data.Active)
 	if Data.Active == ActiveDev {
 		Data.ThreadNum = 1
