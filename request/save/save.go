@@ -21,12 +21,18 @@ var finishedMsgs = map[string]bool{
 	"当前时间点已被申报，是否选择排队？":    false,
 	"当前时间点已被申报,是否选择排队？":    false,
 }
+var timeLimit int64
+
+func init() {
+	now := time.Now()
+	times := fmt.Sprintf("%d-%02d-%02d 14:00", now.Year(), now.Month(), now.Day())
+	limit, _ := time.ParseInLocation("2006-01-02 15:04", times, time.Local)
+	timeLimit = limit.Unix()
+}
 
 func howLong() int64 {
 	now := time.Now()
-	times := fmt.Sprintf("%d-%02d-%02d 14:00", now.Year(), now.Month(), now.Day())
-	limit, _ := time.Parse("2006-01-02 15:04", times)
-	return int64(now.Sub(limit).Seconds())
+	return timeLimit - now.Unix()
 }
 
 func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
@@ -34,32 +40,25 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 	if conf.Data.Active == conf.ActiveProd {
 		url = "https://www.sh.msa.gov.cn/zwzx/applyVtsDeclare1/save/"
 	}
-	opts, err := generateSaveOpts(passTime, JSESSIONID)
-	if err != nil {
-		log.WithError(err).Error("组装请求参数失败")
-		return
-	}
+
 	finished := false
 	start := false
 	for !finished {
 		if start || conf.Data.Active == conf.ActiveDev {
-			result, err := save(url, opts)
+			startTime := time.Now()
+			result, err := save(url, passTime, JSESSIONID)
+			logWithTime := log.WithField("utime", time.Since(startTime).Seconds())
 			if err != nil {
-				log.WithError(err).Error("提交失败")
-				finished = conf.Data.Active == conf.ActiveDev || err.Error() == "404"
+				logWithTime.WithError(err).Error("提交失败")
 				continue
 			}
 			_, finished = finishedMsgs[result.ResultDesc]
-			log.WithField("result", result.ResultDesc).WithField("finished", finished).Info("提交成功")
+			logWithTime.WithField("result", result.ResultDesc).WithField("finished", finished).Info("提交成功")
 		} else {
 			serverResult, err := getTime(JSESSIONID)
-			localResult := howLong()
 			if err != nil {
 				log.WithError(err).Error("获取申报开始时间失败")
-				serverResult = localResult
-			} else if serverResult > localResult {
-				log.Error("使用相对更小的本地时间校准")
-				serverResult = localResult
+				serverResult = howLong()
 			}
 			remainLog := log.WithField("remain", serverResult)
 			if serverResult > 30 {
@@ -101,7 +100,11 @@ func generateSaveOpts(passTime, JSESSIONID string) (*grequests.RequestOptions, e
 	}
 	return opts, nil
 }
-func save(url string, opts *grequests.RequestOptions) (*vo.Result, error) {
+func save(url, passTime, JSESSIONID string) (*vo.Result, error) {
+	opts, err := generateSaveOpts(passTime, JSESSIONID)
+	if err != nil {
+		return nil, errors.WithMessage(err, "组装请求参数失败")
+	}
 	res, err := grequests.Post(url, opts)
 	if err != nil {
 		return nil, errors.WithMessage(err, "请求")
