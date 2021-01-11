@@ -50,10 +50,12 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 			logWithTime := log.WithField("utime", time.Since(startTime).Seconds())
 			if err != nil {
 				logWithTime.WithError(err).Error("提交失败")
+				finished = true
 				continue
 			}
-			_, finished = finishedMsgs[result.ResultDesc]
 			logWithTime.WithField("result", result.ResultDesc).WithField("finished", finished).Info("提交成功")
+			_, finished = finishedMsgs[result.ResultDesc]
+			finished = finished && conf.Data.Active != conf.ActiveDev
 		} else {
 			serverResult, err := getTime(JSESSIONID)
 			if err != nil {
@@ -71,6 +73,28 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 		}
 	}
 }
+
+func save(url, passTime, JSESSIONID string) (*vo.Result, error) {
+	opts, err := generateSaveOpts(passTime, JSESSIONID)
+	if err != nil {
+		return nil, errors.WithMessage(err, "组装请求参数失败")
+	}
+	res, err := grequests.Post(url, opts)
+	if err != nil {
+		return nil, errors.WithMessage(err, "请求")
+	}
+	defer res.Close()
+	if res.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("%d", res.StatusCode))
+	}
+	result := &vo.Result{}
+	err = res.JSON(result)
+	if err != nil {
+		return nil, errors.WithMessage(err, "解码")
+	}
+	return result, nil
+}
+
 func generateSaveOpts(passTime, JSESSIONID string) (*grequests.RequestOptions, error) {
 	contentType, requestBody, err := conf.CreateRequestBody(passTime, vscode.Get(JSESSIONID))
 	if err != nil {
@@ -99,26 +123,6 @@ func generateSaveOpts(passTime, JSESSIONID string) (*grequests.RequestOptions, e
 		RequestBody:    requestBody,
 	}
 	return opts, nil
-}
-func save(url, passTime, JSESSIONID string) (*vo.Result, error) {
-	opts, err := generateSaveOpts(passTime, JSESSIONID)
-	if err != nil {
-		return nil, errors.WithMessage(err, "组装请求参数失败")
-	}
-	res, err := grequests.Post(url, opts)
-	if err != nil {
-		return nil, errors.WithMessage(err, "请求")
-	}
-	defer res.Close()
-	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("%d", res.StatusCode))
-	}
-	result := &vo.Result{}
-	err = res.JSON(result)
-	if err != nil {
-		return nil, errors.WithMessage(err, "解码")
-	}
-	return result, nil
 }
 
 func getTime(JSESSIONID string) (int64, error) {
