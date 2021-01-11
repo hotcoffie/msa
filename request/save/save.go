@@ -55,7 +55,6 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 			}
 			logWithTime.WithField("result", result.ResultDesc).WithField("finished", finished).Info("提交成功")
 			_, finished = finishedMsgs[result.ResultDesc]
-			finished = finished && conf.Data.Active != conf.ActiveDev
 		} else {
 			serverResult, err := getTime(JSESSIONID)
 			if err != nil {
