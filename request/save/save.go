@@ -53,8 +53,12 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 				finished = true
 				continue
 			}
-			logWithTime.WithField("result", result.ResultDesc).WithField("finished", finished).Info("提交成功")
 			_, finished = finishedMsgs[result.ResultDesc]
+			if result.RecordsTotal > 0 {
+				logWithTime.WithField("result", result.ResultDesc).Info("提交成功")
+			} else {
+				logWithTime.WithField("result", "您的排队信息已成功提交，您当前排第"+strconv.Itoa(result.RecordsTotal)).Info("提交成功")
+			}
 		} else {
 			serverResult, err := getTime(JSESSIONID)
 			if err != nil {
