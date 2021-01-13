@@ -2,16 +2,27 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
+	"io"
+	"log"
 	"msa/common/conf"
 	_ "msa/common/logger"
 	"msa/common/util"
 	"msa/request"
+	"os"
 	"strings"
 	"sync"
 	"time"
 )
 
 func main() {
+	f, err := os.OpenFile("run.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	fileAndStdoutWriter := io.MultiWriter(f, os.Stdout)
+	logrus.SetOutput(fileAndStdoutWriter)
+
 	run()
 }
 
