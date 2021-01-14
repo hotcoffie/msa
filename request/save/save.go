@@ -54,7 +54,7 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 				continue
 			}
 			_, finished = finishedMsgs[result.ResultDesc]
-			if result.RecordsTotal > 0 {
+			if result.RecordsTotal < 1 {
 				logWithTime.WithField("result", result.ResultDesc).Info("提交成功")
 			} else {
 				logWithTime.WithField("result", "您的排队信息已成功提交，您当前排第"+strconv.Itoa(result.RecordsTotal)).Info("提交成功")
