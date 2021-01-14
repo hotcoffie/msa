@@ -19,24 +19,27 @@ import (
 const logPath = "logs"
 
 func main() {
+	logFile := getLogFile()
+	defer logFile.Close()
+	fileAndStdoutWriter := io.MultiWriter(logFile, os.Stdout)
+	log.SetOutput(fileAndStdoutWriter)
+
+	run()
+}
+
+func getLogFile() *os.File {
 	logFileName := filepath.Join(logPath, "run"+strconv.FormatInt(time.Now().Unix(), 10)+".log")
 	f, err := os.OpenFile(logFileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("打开日志文件：", err)
 	}
-	defer f.Close()
-	fileAndStdoutWriter := io.MultiWriter(f, os.Stdout)
-	logrus.SetOutput(fileAndStdoutWriter)
-
-	run()
+	return f
 }
 
 func run() {
 	date := time.Now().Add(time.Hour * 24).Format("2006-01-02 ")
 	logrus.Infof("抢点日期：%s", date)
 	logrus.Infof("运行模式：%s", conf.Data.Active)
-	//logrus.Infof("当前账号：%s", conf.Data.Username)
-	//logrus.Infof("时间列表：%s", conf.Data.Points)
 	points := strings.Split(conf.Data.Points, " ")
 	wn := len(points) * conf.Data.ThreadNum
 	logrus.Infof("线程总数：%d", wn)
