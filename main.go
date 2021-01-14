@@ -9,13 +9,18 @@ import (
 	"msa/common/util"
 	"msa/request"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
 
+const logPath = "logs"
+
 func main() {
-	f, err := os.OpenFile("run.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	logFileName := filepath.Join(logPath, "run"+strconv.FormatInt(time.Now().Unix(), 10)+".log")
+	f, err := os.OpenFile(logFileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

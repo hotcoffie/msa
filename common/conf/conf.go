@@ -13,12 +13,14 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 )
 
 const ActiveDev = "dev"
 const ActiveProd = "prod"
+const configPath = "setting"
 
 type entity struct {
 	Active    string
@@ -39,7 +41,7 @@ func init() {
 	wg.Wait()
 }
 func initConf(wg *sync.WaitGroup) {
-	yamlFile, err := ioutil.ReadFile("conf.yml")
+	yamlFile, err := ioutil.ReadFile(filepath.Join(configPath, "conf.yml"))
 	if err != nil {
 		logrus.WithError(err).Panic("读取配置文件")
 	}
@@ -53,7 +55,7 @@ func initConf(wg *sync.WaitGroup) {
 	wg.Done()
 }
 func initInfo(wg *sync.WaitGroup) {
-	file, err := os.Open("info.yml")
+	file, err := os.Open(filepath.Join(configPath, "info.yml"))
 	if err != nil {
 		logrus.WithError(err).Panic("读取申报信息")
 	}
