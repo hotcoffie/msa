@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"msa/common/conf"
 	_ "msa/common/logger"
 	"msa/common/util"
@@ -22,7 +21,7 @@ func main() {
 	logFile := getLogFile()
 	defer logFile.Close()
 	fileAndStdoutWriter := io.MultiWriter(logFile, os.Stdout)
-	log.SetOutput(fileAndStdoutWriter)
+	logrus.SetOutput(fileAndStdoutWriter)
 
 	run()
 }
@@ -31,7 +30,7 @@ func getLogFile() *os.File {
 	logFileName := filepath.Join(logPath, "run"+strconv.FormatInt(time.Now().Unix(), 10)+".log")
 	f, err := os.OpenFile(logFileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		log.Fatal("打开日志文件：", err)
+		logrus.Fatal("打开日志文件：", err)
 	}
 	return f
 }
