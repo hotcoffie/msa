@@ -71,8 +71,10 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 				time.Sleep(40 * time.Second)
 			} else {
 				sleepTime := serverResult - 5
-				remainLog.Debug("休息", sleepTime, "秒后开抢")
-				time.Sleep(time.Duration(sleepTime) * time.Second)
+				if sleepTime > 0 {
+					remainLog.Debug("休息", sleepTime, "秒后开抢")
+					time.Sleep(time.Duration(sleepTime) * time.Second)
+				}
 				remainLog.Info("抢点开始")
 				start = true
 			}
