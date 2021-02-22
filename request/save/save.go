@@ -50,7 +50,6 @@ func Dail(passTime, JSESSIONID string, log *logrus.Entry) {
 			logWithTime := log.WithField("utime", time.Since(startTime).Seconds())
 			if err != nil {
 				logWithTime.WithError(err).Error("提交失败")
-				finished = true
 				continue
 			}
 			_, finished = finishedMsgs[result.ResultDesc]
